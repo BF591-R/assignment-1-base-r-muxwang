@@ -17,8 +17,10 @@
 #' [1] FALSE
 #' less_than_zero(c(-1,0,1,2,3,4))
 #' [1] TRUE FALSE FALSE FALSE FALSE FALSE
+
 less_than_zero <- function(x) {
-    return(NULL)
+  
+    return(x < 0)
 }
 
 #' Evaluate whether the argument is between two numbers
@@ -44,7 +46,7 @@ less_than_zero <- function(x) {
 #' [2,]  TRUE FALSE FALSE
 #' [3,] FALSE FALSE FALSE
 is_between <- function(x, a, b) {
-    return(NULL)
+    return(x>a & x<b)
 }
 
 #' Return the values of the input vector that are not NA
@@ -61,7 +63,7 @@ is_between <- function(x, a, b) {
 #' rm_na(x)
 #' [1] 1 2 3
 rm_na <- function(x) {
-    return(NULL)
+    return(x[!is.na(x)])
 }
 
 #' Calculate the median of each row of a matrix
@@ -79,8 +81,9 @@ rm_na <- function(x) {
 #' row_medians(m)
 #' [1] 1 4 7
 #' 
-row_medians <- function(x) {
-    return(NULL)
+row_medians <- function(x) { 
+  m <- apply(x, 1, median, na.rm = TRUE)
+    return(m)
 }
 
 #' Evaluate each row of a matrix with a provided function
@@ -105,7 +108,10 @@ row_medians <- function(x) {
 #' summarize_rows(m, mean)
 #' [1] 2 5 8
 summarize_rows <- function(x, fn, na.rm=FALSE) {
-    return(NULL)
+  if (na.rm) {
+    x <- apply(x, 1, function(row) rm_na(row))
+  }
+  return(apply(x, 1, fn))
 }
 
 #' Summarize matrix rows into data frame
@@ -144,9 +150,33 @@ summarize_rows <- function(x, fn, na.rm=FALSE) {
 #' 2 -0.01574033 1.026951 -0.04725656 -2.967057 2.571608      112              70      0
 #' 3 -0.09040182 1.027559 -0.02774705 -3.026888 2.353087      130              54      0
 #' 4  0.09518138 1.030461  0.11294781 -3.409049 2.544992       90              72      0
-summarize_matrix <- function(x, na.rm=FALSE) {
-    return(NULL)
+#' 
+#' have to create count function so we use the direct function on apply
+count_values_between_1_and_5 <- function(row) {
+  return(sum(is_between(row, 1, 5)))
 }
+count_values_less_than_zero <- function(row) {
+  return(sum(less_than_zero(row)))
+}
+count_na <- function(row) {
+  return(sum(is.na(row)))
+}
+
+summarize_matrix <- function(x, na.rm=FALSE) {
+   mean <- summarize_rows(x,mean)
+   stdev <- summarize_rows(x,sd)
+   median <- summarize_rows(x,median)
+   min <- summarize_rows(x,min)
+   max <- summarize_rows(x,max)
+   num_lt_0 <-summarize_rows(x,count_values_less_than_zero)
+   num_btw_1_and_5 <- summarize_rows(x,count_values_between_1_and_5)
+   num_na <- summarize_rows(x, count_na)
+   data_frame <- data.frame(mean, stdev, median, min, max, num_lt_0, num_btw_1_and_5, num_na)
+  
+    return(data_frame)
+}
+
+
 
 # ------------ Helper Functions Used By Assignment, You May Ignore ------------
 sample_normal <- function(n, mean=0, sd=1) {
